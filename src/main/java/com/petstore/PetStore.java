@@ -22,26 +22,25 @@ public class PetStore {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/getAllPets")
-	public Response responseMsg( @PathParam("parameter") String parameter,
+	public Response getAllPets( @PathParam("parameter") String parameter,
 			@DefaultValue("id") @QueryParam("sortBy") String value) {
 		
-		String response = HttpRequest.get("http://petstore.swagger.io/v2/store/inventory").body();
-		System.out.println("Response was: " + response);
+		String inventoryResponse = HttpRequest.get("http://petstore.swagger.io/v2/store/inventory").body();
+		
 		// get all statuses
-		JsonObject obj = new JsonParser().parse(response).getAsJsonObject();
+		JsonObject inventory = new JsonParser().parse(inventoryResponse).getAsJsonObject();
 		// get all pets through statuses
 		String statuses = "";
-		for(Entry<String, JsonElement> e : obj.entrySet()) {
+		for(Entry<String, JsonElement> entry : inventory.entrySet()) {
 			//get all pets of this status
-			statuses += e.getKey();
+			statuses += entry.getKey();
 			statuses += ",";
 		}
 		statuses = statuses.substring(0, statuses.length()-1);
-		String response2 = HttpRequest.get("http://petstore.swagger.io/v2/pet/findByStatus", true, "status", statuses).body();
-		System.out.println(statuses);
-		System.out.println("pets: " + response2);
-		JsonArray array = new JsonParser().parse(response2).getAsJsonArray();
-		System.out.println("array " + array.toString());
+		String petsResponse = HttpRequest.get("http://petstore.swagger.io/v2/pet/findByStatus", true, "status", statuses).body();
+		
+		JsonArray petArray = new JsonParser().parse(petsResponse).getAsJsonArray();
+		
 		List<Pet> petList = new ArrayList<Pet>();
 		Gson gson = new Gson();
 		GsonBuilder gsonBuilder = new GsonBuilder();
@@ -49,12 +48,7 @@ public class PetStore {
 		gsonBuilder.registerTypeAdapter(Tag.class, new TagInstanceCreator());
 		gson = gsonBuilder.create();
 		
-		int count = 0;
-		for(JsonElement jsonElement : array) {
-			if(count ==0) {
-				JsonObject j = jsonElement.getAsJsonObject();
-				System.out.println("jsonObject: " +j.toString());
-			}
+		for(JsonElement jsonElement : petArray) {
 			petList.add(gson.fromJson(jsonElement.getAsJsonObject().toString(), Pet.class));
 		}
 		if(value.equals("id")) {
@@ -63,8 +57,7 @@ public class PetStore {
 		else {
 			Collections.sort(petList, new NameComparator());
 		}
-		System.out.println("petlist: " + petList.toString());
-		//String output = "Hello from: " + parameter + " : " + value + " Response is: "+response;
+		
 		String output = gson.toJson(petList);
 		return Response.status(200).entity(output).build();
 	}
@@ -77,11 +70,7 @@ public class PetStore {
 	
 	class NameComparator implements Comparator<Pet> {
 		public int compare(Pet a, Pet b) {
-			System.out.println("a: "+a);
-			System.out.println("b: "+b);
 			return a.getName().compareToIgnoreCase(b.getName());
 		}
 	}
-	
-	
 }
