@@ -3,8 +3,10 @@ package com.petstore;
 import java.util.Map.Entry;
 import java.util.*;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -22,8 +24,7 @@ public class PetStore {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/getAllPets")
-	public Response getAllPets( @PathParam("parameter") String parameter,
-			@DefaultValue("id") @QueryParam("sortBy") String value) {
+	public Response getAllPets(@DefaultValue("id") @QueryParam("sortBy") String value) {
 		
 		String inventoryResponse = HttpRequest.get("http://petstore.swagger.io/v2/store/inventory").body();
 		
@@ -61,6 +62,15 @@ public class PetStore {
 		String output = gson.toJson(petList);
 		return Response.status(200).entity(output).build();
 	}
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Path("/addPets")
+	public Response addPets( @PathParam("parameter") String parameter,
+			@DefaultValue("id") @QueryParam("sortBy") String value) {
+		return Response.status(200).build();
+	}
+	
 	
 	class IdComparator implements Comparator<Pet> {
 		public int compare(Pet a, Pet b) {
