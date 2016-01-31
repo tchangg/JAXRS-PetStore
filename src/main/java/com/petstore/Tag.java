@@ -1,7 +1,7 @@
 package com.petstore;
 
 public class Tag {
-	private int id;
+	private long id;
 	private String name;
 	
 	public Tag() {
@@ -9,12 +9,12 @@ public class Tag {
 		this.name = "string";
 	}
 	
-	public Tag(int id, String name) {
+	public Tag(long id, String name) {
 		this.id = id;
 		this.name = name;
 	}
 	
-	public int getId() {
+	public long getId() {
 		return this.id;
 	}
 	
@@ -22,7 +22,7 @@ public class Tag {
 		return this.name;
 	}
 	
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	

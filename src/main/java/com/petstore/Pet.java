@@ -39,6 +39,10 @@ public class Pet {
 		return this.category;
 	}
 	
+	public void addTag(Tag tag) {
+		this.tags.add(tag);	
+	}
+	
 	public String getName() {
 		if(this.name == null) {
 			return "string";
