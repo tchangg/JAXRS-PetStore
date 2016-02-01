@@ -17,6 +17,7 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 
 import  com.google.gson.*;
+import org.json.*;
 
 public class PetStoreTest extends JerseyTest {
 	@Override
@@ -27,12 +28,43 @@ public class PetStoreTest extends JerseyTest {
 	@Test
 	public void testGetAllPetsByName() throws URISyntaxException {
 		WebResource webResource = client().resource("http://localhost:8080/");
-		JsonArray json = webResource.path("/JAXRS-PetStore/rest/PetStore/getAllPets").queryParam("sortBy", "name")
-				.get(JsonArray.class);
+		//JSONArray json = new JSONArray(webResource.path("/JAXRS-PetStore/rest/PetStore/getAllPets").queryParam("sortBy", "name").get(String.class));
+		//JsonArray json = new JsonParser().parse(webResource.path("/JAXRS-PetStore/rest/PetStore/getAllPets").queryParam("sortBy", "name").get(String.class)).getAsJsonArray();
+		String petsResponse = HttpRequest.get("http://localhost:8080/JAXRS-PetStore/rest/PetStore/getAllPets", true, "sortBy", "name").body();
+		JsonArray json = new JsonParser().parse(petsResponse).getAsJsonArray();
+		System.out.println("json size: "+json.size());
 		assertEquals(numberOfPets(), json.size());
+		String name1 = "", name2 = "";
+		JsonElement jsonEle1, jsonEle2;
 		if(json.size() > 1) {
 			for(int i = 1; i < json.size(); i++) {
-				assertTrue(json.get(i-1).getAsJsonObject().get("name").getAsString().compareToIgnoreCase(json.get(i).getAsJsonObject().get("name").getAsString()) <= 0);
+				//assertTrue(json.getJSONObject(i-1)	.getString("name").compareToIgnoreCase(json.getJSONObject(i).getString("name")) <= 0);
+				jsonEle1 = json.get(i-1).getAsJsonObject().get("name");
+				if(jsonEle1 == null) {
+					name1 = "";
+				}
+				else {
+					name1 = jsonEle1.getAsString();
+					if(name1 == null) {
+						name1 = "";
+					}
+				}
+				jsonEle2 = json.get(i).getAsJsonObject().get("name");
+				if(jsonEle2 == null) {
+					name2 = "";
+				}
+				else {
+					name2 = jsonEle2.getAsString();
+					if(name2 == null) {
+						name2 = "";
+					}
+				}
+				//assertTrue(json.get(i-1).getAsJsonObject().get("name").getAsString().compareToIgnoreCase(json.get(i).getAsJsonObject().get("name").getAsString()) <= 0);
+				System.out.println("name1: "+name1);
+				//System.out.println(jsonEle1.toString());
+				System.out.println("name2: " + name2);
+				//System.out.println(jsonEle2.toString());
+				assertTrue(name1.compareToIgnoreCase(name2) <= 0);
 			}
 		}
 		//assertEquals("12", json.get("id"));
@@ -44,8 +76,8 @@ public class PetStoreTest extends JerseyTest {
 	@Test
 	public void testGetAllPetsById() throws URISyntaxException {
 		WebResource webResource = client().resource("http://localhost:8080/");
-		JsonArray json = webResource.path("/JAXRS-PetStore/rest/PetStore/getAllPets").queryParam("sortBy", "id")
-				.get(JsonArray.class);
+		String petsResponse = HttpRequest.get("http://localhost:8080/JAXRS-PetStore/rest/PetStore/getAllPets", true, "sortBy", "id").body();
+		JsonArray json = new JsonParser().parse(petsResponse).getAsJsonArray();
 		assertEquals(numberOfPets(), json.size());
 		if(json.size() > 1) {
 			for(int i = 1; i < json.size(); i++) {
@@ -61,8 +93,11 @@ public class PetStoreTest extends JerseyTest {
 		int numPets = 0;
 		for(Entry<String, JsonElement> entry : inventory.entrySet()) {
 			//get number of pets for each status
+			//System.out.println("status: "+entry.getKey()+" number: "+entry.getValue().getAsInt());
+			if(entry.getKey().equals("available") || entry.getKey().equals("pending") || entry.getKey().equals("sold"))
 			numPets += entry.getValue().getAsInt();
 		}
+		System.out.println("numberOfPets:"+numPets);
 		return numPets;
 	}
 

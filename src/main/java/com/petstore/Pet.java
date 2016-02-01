@@ -5,7 +5,7 @@ import java.util.*;
 public class Pet {
 	private long id;
 	private Category category;
-	private String name;
+	private String name="";
 	private List<String> photoUrls;
 	private List<Tag> tags;
 	private String status;
@@ -45,7 +45,7 @@ public class Pet {
 	
 	public String getName() {
 		if(this.name == null) {
-			return "string";
+			return "";
 		}
 		return this.name;
 	}

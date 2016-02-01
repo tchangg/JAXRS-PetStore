@@ -32,16 +32,21 @@ public class PetStore {
 		JsonObject inventory = new JsonParser().parse(inventoryResponse).getAsJsonObject();
 		// get all pets through statuses
 		String statuses = "";
+		int testnum = 0;
 		for(Entry<String, JsonElement> entry : inventory.entrySet()) {
 			//get all pets of this status
 			statuses += entry.getKey();
+			testnum += entry.getValue().getAsInt();
 			statuses += ",";
 		}
+		System.out.println("testnum "+ testnum);
+		System.out.println("statuses before: "+statuses);
 		statuses = statuses.substring(0, statuses.length()-1);
-		String petsResponse = HttpRequest.get("http://petstore.swagger.io/v2/pet/findByStatus", true, "status", statuses).body();
+		System.out.println("statuses after: "+statuses);
+		String petsResponse = HttpRequest.get("http://petstore.swagger.io/v2/pet/findByStatus", true, "status", "available,pending,sold").body();
 		
 		JsonArray petArray = new JsonParser().parse(petsResponse).getAsJsonArray();
-		
+		System.out.println("pet array size:"+petArray.size());
 		List<Pet> petList = new ArrayList<Pet>();
 		Gson gson = new Gson();
 		GsonBuilder gsonBuilder = new GsonBuilder();
@@ -50,7 +55,15 @@ public class PetStore {
 		gson = gsonBuilder.create();
 		
 		for(JsonElement jsonElement : petArray) {
-			petList.add(gson.fromJson(jsonElement.getAsJsonObject().toString(), Pet.class));
+			JsonObject jsonObj = jsonElement.getAsJsonObject();
+			if(jsonObj.get("name") == null) {
+				//jsonObj.addProperty("name", "");
+			}
+			//petList.add(gson.fromJson(jsonElement.getAsJsonObject().toString(), Pet.class));
+			petList.add(gson.fromJson(jsonObj.toString(), Pet.class));
+			if(jsonElement.getAsJsonObject().get("status").equals("Here, but not")) {
+				System.out.println("found it: " + jsonElement.getAsJsonObject().get("id"));
+			}
 		}
 		if(value.equals("id")) {
 			Collections.sort(petList, new IdComparator());
@@ -58,8 +71,10 @@ public class PetStore {
 		else {
 			Collections.sort(petList, new NameComparator());
 		}
-		
+		System.out.println("pet list size:"+petList.size());
 		String output = gson.toJson(petList);
+		JsonArray testArray = new JsonParser().parse(output).getAsJsonArray();
+		System.out.println("test array: "+testArray.size());
 		return Response.status(200).entity(output).build();
 	}
 	
