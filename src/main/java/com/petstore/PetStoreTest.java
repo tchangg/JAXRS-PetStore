@@ -27,7 +27,7 @@ public class PetStoreTest extends JerseyTest {
 	@Test
 	public void testGetAllPetsByName() throws URISyntaxException {
 		WebResource webResource = client().resource("http://localhost:8080/");
-		JsonArray json = webResource.path("/JAXRS-PetStore/rest/PetStore/getAllPets?sortBy=name")
+		JsonArray json = webResource.path("/JAXRS-PetStore/rest/PetStore/getAllPets").queryParam("sortBy", "name")
 				.get(JsonArray.class);
 		assertEquals(numberOfPets(), json.size());
 		if(json.size() > 1) {
@@ -44,7 +44,7 @@ public class PetStoreTest extends JerseyTest {
 	@Test
 	public void testGetAllPetsById() throws URISyntaxException {
 		WebResource webResource = client().resource("http://localhost:8080/");
-		JsonArray json = webResource.path("/JAXRS-PetStore/rest/PetStore/getAllPets?sortBy=id")
+		JsonArray json = webResource.path("/JAXRS-PetStore/rest/PetStore/getAllPets").queryParam("sortBy", "id")
 				.get(JsonArray.class);
 		assertEquals(numberOfPets(), json.size());
 		if(json.size() > 1) {
