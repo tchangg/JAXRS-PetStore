@@ -62,13 +62,13 @@ public class PetStore {
 	}
 	
 	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
+	@Consumes({MediaType.APPLICATION_JSON})
 	@Path("/addPets")
-	public Response addPets( Pet[] pets, @DefaultValue("name") @QueryParam("tag") String tag) {
+	public Response addPets( Pet[] pets, @DefaultValue("default") @QueryParam("tagName") String tag) {
 		if(pets == null) {
-			
+			System.out.println("pets is not null");
 		}
-		
+		System.out.println("pets is null");
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter(Category.class, new CategoryInstanceCreator());
 		gsonBuilder.registerTypeAdapter(Tag.class, new TagInstanceCreator());
@@ -77,8 +77,10 @@ public class PetStore {
 		for(int i = 0; i < pets.length; i++) {
 			Tag tmpTag = new Tag(pets[i].getId(), tag);
 			pets[i].addTag(tmpTag);
-			int response = HttpRequest.post("http://petstore.swagger.io/v2/pet").send(gson.toJson(pets[i])).code();
+			int response = HttpRequest.post("http://petstore.swagger.io/v2/pet").contentType("application/json").acceptJson().send(gson.toJson(pets[i])).code();
+			System.out.println("addPets response code: " + response);
 		}
+		
 		return Response.status(200).build();
 	}
 	

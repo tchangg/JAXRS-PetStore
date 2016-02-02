@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 
 //import org.codehaus.jettison.json.JSONException;
@@ -26,7 +28,7 @@ public class PetStoreTest extends JerseyTest {
 	}
 
 	@Test
-	public void testGetAllPetsByName() throws URISyntaxException {
+	public void testGetAllPetsSortedByName() throws URISyntaxException {
 		String petsResponse = HttpRequest.get("http://localhost:8080/JAXRS-PetStore/rest/PetStore/getAllPets", true, "sortBy", "name").body();
 		JsonArray json = new JsonParser().parse(petsResponse).getAsJsonArray();
 		assertEquals(numberOfPets(), json.size());
@@ -54,7 +56,7 @@ public class PetStoreTest extends JerseyTest {
 	}
 	
 	@Test
-	public void testGetAllPetsById() throws URISyntaxException {
+	public void testGetAllPetsSortedById() throws URISyntaxException {
 		WebResource webResource = client().resource("http://localhost:8080/");
 		String petsResponse = HttpRequest.get("http://localhost:8080/JAXRS-PetStore/rest/PetStore/getAllPets", true, "sortBy", "id").body();
 		JsonArray json = new JsonParser().parse(petsResponse).getAsJsonArray();
@@ -63,6 +65,37 @@ public class PetStoreTest extends JerseyTest {
 			for(int i = 1; i < json.size(); i++) {
 				assertTrue(json.get(i-1).getAsJsonObject().get("id").getAsLong() <= json.get(i).getAsJsonObject().get("id").getAsLong());
 			}
+		}
+	}
+	
+	@Test
+	public void testAddPetList() throws URISyntaxException {
+		int numPets = 3010;
+		
+		List<Pet> petList = new ArrayList<Pet>();
+		for(int i = 3000; i < numPets; i++) {
+			petList.add(new Pet(i, new Category(), String.valueOf(i), new ArrayList<String>(), new ArrayList<Tag>(), "available"));
+		}
+		Gson gson = new Gson();
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Category.class, new CategoryInstanceCreator());
+		gsonBuilder.registerTypeAdapter(Tag.class, new TagInstanceCreator());
+		gson = gsonBuilder.create();
+		String output = gson.toJson(petList);
+		System.out.println("output: "+output);
+		//output = "\"pets\":"+output;
+		System.out.println("output: "+output);
+		int response = HttpRequest.post("http://localhost:8080/JAXRS-PetStore/rest/PetStore/addPets", true, "tagName", "testTag").contentType("application/json").acceptJson().send(output).code();
+		System.out.println("response code: " + response);
+		String petResponse;
+		Pet pet;
+		for(int i = 3000; i < numPets; i++) {
+			petResponse = HttpRequest.get("http://petstore.swagger.io/v2/pet/"+i).body();
+			pet = gson.fromJson(new JsonParser().parse(petResponse).getAsJsonObject().toString(), Pet.class);
+			//asdfdsf
+			assertEquals(pet.getId(), (long)i);
+			assertEquals(pet.getName(), String.valueOf(i));
+			assertTrue(pet.hasTagName("testTag"));
 		}
 	}
 	
