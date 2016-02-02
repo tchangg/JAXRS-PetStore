@@ -57,7 +57,6 @@ public class PetStoreTest extends JerseyTest {
 	
 	@Test
 	public void testGetAllPetsSortedById() throws URISyntaxException {
-		WebResource webResource = client().resource("http://localhost:8080/");
 		String petsResponse = HttpRequest.get("http://localhost:8080/JAXRS-PetStore/rest/PetStore/getAllPets", true, "sortBy", "id").body();
 		JsonArray json = new JsonParser().parse(petsResponse).getAsJsonArray();
 		assertEquals(numberOfPets(), json.size());
@@ -74,7 +73,7 @@ public class PetStoreTest extends JerseyTest {
 		
 		List<Pet> petList = new ArrayList<Pet>();
 		for(int i = 3000; i < numPets; i++) {
-			petList.add(new Pet(i, new Category(), String.valueOf(i), new ArrayList<String>(), new ArrayList<Tag>(), "available"));
+			petList.add(new Pet(i, new Category(), String.valueOf(i), new ArrayList<String>(), new ArrayList<Tag>(), Pet.STATUS_AVAILABLE));
 		}
 		Gson gson = new Gson();
 		GsonBuilder gsonBuilder = new GsonBuilder();
@@ -82,17 +81,12 @@ public class PetStoreTest extends JerseyTest {
 		gsonBuilder.registerTypeAdapter(Tag.class, new TagInstanceCreator());
 		gson = gsonBuilder.create();
 		String output = gson.toJson(petList);
-		System.out.println("output: "+output);
-		//output = "\"pets\":"+output;
-		System.out.println("output: "+output);
 		int response = HttpRequest.post("http://localhost:8080/JAXRS-PetStore/rest/PetStore/addPets", true, "tagName", "testTag").contentType("application/json").acceptJson().send(output).code();
-		System.out.println("response code: " + response);
 		String petResponse;
 		Pet pet;
 		for(int i = 3000; i < numPets; i++) {
 			petResponse = HttpRequest.get("http://petstore.swagger.io/v2/pet/"+i).body();
 			pet = gson.fromJson(new JsonParser().parse(petResponse).getAsJsonObject().toString(), Pet.class);
-			//asdfdsf
 			assertEquals(pet.getId(), (long)i);
 			assertEquals(pet.getName(), String.valueOf(i));
 			assertTrue(pet.hasTagName("testTag"));
@@ -106,19 +100,10 @@ public class PetStoreTest extends JerseyTest {
 		int numPets = 0;
 		for(Entry<String, JsonElement> entry : inventory.entrySet()) {
 			//get number of pets for each status
-			//System.out.println("status: "+entry.getKey()+" number: "+entry.getValue().getAsInt());
-			if(entry.getKey().equals("available") || entry.getKey().equals("pending") || entry.getKey().equals("sold"))
-			numPets += entry.getValue().getAsInt();
+			if(Pet.isValidStatus(entry.getKey())) {
+				numPets += entry.getValue().getAsInt();
+			}
 		}
-		System.out.println("numberOfPets:"+numPets);
 		return numPets;
 	}
-
-	/*
-	@Test(expected = UniformInterfaceException.class)
-	public void testUserNotFound() {
-		WebResource webResource = client().resource("http://localhost:8080/");
-		JSONObject json = webResource.path("/rest-test-tutorial/user/id/666")
-				.get(JSONObject.class);
-	}*/
 }

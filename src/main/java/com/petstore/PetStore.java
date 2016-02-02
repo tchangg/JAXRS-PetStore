@@ -1,6 +1,5 @@
 package com.petstore;
 
-import java.util.Map.Entry;
 import java.util.*;
 
 import javax.ws.rs.Consumes;
@@ -13,9 +12,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.json.JSONException; 
-import org.json.JSONObject;
-//import org.json.JSONReader;
 import  com.google.gson.*;
 
 @Path("/PetStore")
@@ -26,19 +22,7 @@ public class PetStore {
 	@Path("/getAllPets")
 	public Response getAllPets(@DefaultValue("id") @QueryParam("sortBy") String value) {
 		
-		String inventoryResponse = HttpRequest.get("http://petstore.swagger.io/v2/store/inventory").body();
-		
-		// get all statuses
-		JsonObject inventory = new JsonParser().parse(inventoryResponse).getAsJsonObject();
-		// get all pets through statuses
-		String statuses = "";
-		for(Entry<String, JsonElement> entry : inventory.entrySet()) {
-			//get all pets of this status
-			statuses += entry.getKey();
-			statuses += ",";
-		}
-		statuses = statuses.substring(0, statuses.length()-1);
-		String petsResponse = HttpRequest.get("http://petstore.swagger.io/v2/pet/findByStatus", true, "status", "available,pending,sold").body();
+		String petsResponse = HttpRequest.get("http://petstore.swagger.io/v2/pet/findByStatus", true, "status", Pet.STATUS_AVAILABLE+","+Pet.STATUS_PENDING+","+Pet.STATUS_SOLD).body();
 		
 		JsonArray petArray = new JsonParser().parse(petsResponse).getAsJsonArray();
 		List<Pet> petList = new ArrayList<Pet>();
@@ -65,10 +49,6 @@ public class PetStore {
 	@Consumes({MediaType.APPLICATION_JSON})
 	@Path("/addPets")
 	public Response addPets( Pet[] pets, @DefaultValue("default") @QueryParam("tagName") String tag) {
-		if(pets == null) {
-			System.out.println("pets is not null");
-		}
-		System.out.println("pets is null");
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter(Category.class, new CategoryInstanceCreator());
 		gsonBuilder.registerTypeAdapter(Tag.class, new TagInstanceCreator());
@@ -78,12 +58,9 @@ public class PetStore {
 			Tag tmpTag = new Tag(pets[i].getId(), tag);
 			pets[i].addTag(tmpTag);
 			int response = HttpRequest.post("http://petstore.swagger.io/v2/pet").contentType("application/json").acceptJson().send(gson.toJson(pets[i])).code();
-			System.out.println("addPets response code: " + response);
 		}
-		
 		return Response.status(200).build();
 	}
-	
 	
 	class IdComparator implements Comparator<Pet> {
 		public int compare(Pet a, Pet b) {

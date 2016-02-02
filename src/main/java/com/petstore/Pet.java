@@ -6,6 +6,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name="pet")
 public class Pet {
+	public static final String STATUS_AVAILABLE = "available";
+	public static final String STATUS_PENDING = "pending";
+	public static final String STATUS_SOLD = "sold";
+	
 	private long id;
 	private Category category;
 	private String name;
@@ -22,9 +26,7 @@ public class Pet {
 		this.status = status;
 	}
 	
-	public Pet() {
-		
-	}
+	public Pet() {}
 	
 	public long getId() {
 		return this.id;
@@ -92,5 +94,9 @@ public class Pet {
 	
 	public String toString() {	
 		return "Pet[id:"+this.id+",name:"+this.name+"]";
-	}	
+	}
+	
+	public static boolean isValidStatus(String status) {
+		return status.equals(STATUS_AVAILABLE) || status.equals(STATUS_PENDING) || status.equals(STATUS_SOLD);
+	}
 }
